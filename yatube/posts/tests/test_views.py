@@ -278,6 +278,18 @@ class PostViewsTests(TestCase):
             ).exists()
         )
 
+        # Follow repeat
+        self.authorized_user.get(reverse(
+            'posts:profile_follow',
+            kwargs={'username': 'Author'})
+        )
+
+        obj = Follow.objects.filter(
+            user=self.user,
+            author=self.author
+        )
+        self.assertEqual(len(obj), 1)
+
         # Unfollow
         self.authorized_user.get(reverse(
             'posts:profile_unfollow',
@@ -288,6 +300,19 @@ class PostViewsTests(TestCase):
             Follow.objects.filter(
                 user=self.user,
                 author=self.author
+            ).exists()
+        )
+
+        # Follow on yourself
+        self.authorized_user.get(reverse(
+            'posts:profile_follow',
+            kwargs={'username': 'User'})
+        )
+
+        self.assertFalse(
+            Follow.objects.filter(
+                user=self.user,
+                author=self.user
             ).exists()
         )
 

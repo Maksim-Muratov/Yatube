@@ -21,7 +21,6 @@ def index(request):
     return render(request, 'posts/index.html', context)
 
 
-@cache_page(60 * 20)
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
     post_list = Post.objects.filter(
@@ -157,7 +156,10 @@ def follow_index(request):
 def profile_follow(request, username):
     # Подписаться на автора
     author = get_object_or_404(User, username=username)
-    Follow.objects.create(user=request.user, author=author)
+    if request.user != author:
+        obj = Follow.objects.filter(user=request.user, author=author).exists()
+        if obj is False:
+            Follow.objects.create(user=request.user, author=author)
     return redirect('posts:profile', username=username)
 
 
