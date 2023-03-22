@@ -8,10 +8,9 @@
 
 {% block content %}
   <h1>Последние обновления на сайте</h1>
-  {% cache 500 index_page %}
     {% include 'posts/includes/switcher.html' %}
     {% for post in page_obj %}
-      </article>
+      <article>
         <ul>
           <li>
             Автор: {{ post.author.get_full_name }}
@@ -33,6 +32,5 @@
       </article>
       {% if not forloop.last %}<hr>{% endif %}
     {% endfor %}
-  {% endcache %}
   {% include 'posts/includes/paginator.html' %}
 {% endblock %}

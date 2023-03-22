@@ -57,15 +57,25 @@ class PostURLTests(TestCase):
     def test_url_available_only_to_an_authorized_user(self):
         """Страница доступна только авторизованному пользователю.
         Неавторизованный перенаправляется на страницу логина"""
-        template = 'posts/post_create.html'
-        address = '/create/'
 
-        response = self.authorized_client.get(address)
-        self.assertTemplateUsed(response, template)
-        self.assertEqual(response.status_code, 200)
+        templates_url_names = {
+            'posts/post_create.html': '/create/',
+            'posts/follow.html': '/follow/',
+        }
+        for template, address in templates_url_names.items():
+            with self.subTest(address=address):
+                response = self.authorized_client.get(address)
+                self.assertTemplateUsed(response, template)
+                self.assertEqual(response.status_code, 200)
 
-        response = self.guest_client.get(address)
-        self.assertRedirects(response, '/auth/login/?next=/create/')
+        redirect_url_names = {
+            '/auth/login/?next=/create/': '/create/',
+            '/auth/login/?next=/follow/': '/follow/',
+        }
+        for redirect, address in redirect_url_names.items():
+            with self.subTest(address=address):
+                response = self.guest_client.get(address)
+                self.assertRedirects(response, redirect)
 
     def test_url_available_only_to_an_author(self):
         """Страница доступна только автору.

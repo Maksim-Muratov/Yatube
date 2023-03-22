@@ -45,12 +45,8 @@ def profile(request, username):
     post_count = post_list.count()
     following = None
     if request.user.is_authenticated:
-        follow = Follow.objects.filter(
+        following = Follow.objects.filter(
             user=request.user, author=author).exists()
-        if follow is True:
-            following = True
-        else:
-            following = False
     context = {
         'author': author,
         'page_obj': page_obj,
@@ -68,7 +64,7 @@ def post_detail(request, post_id):
         author=author)
     post_count = post_list.count()
     title = post.text[:30]
-    form = CommentForm(request.POST or None)
+    form = CommentForm()
     comments = Comment.objects.filter(post=post)
     context = {
         'post': post,
@@ -139,12 +135,12 @@ def add_comment(request, post_id):
 
 @login_required
 def follow_index(request):
-    # информация о текущем пользователе доступна в переменной request.user
-    follow_list = Follow.objects.filter(user=request.user)
-    post_list = []
-    for follow in follow_list:
-        post_list += Post.objects.filter(
-            author=follow.author).order_by('-pub_date')
+
+    user = request.user
+    authors = user.follower.values_list('author', flat=True)
+    post_list = Post.objects.filter(
+        author__id__in=authors).order_by('-pub_date')
+
     paginator = Paginator(post_list, POSTS_ON_PAGE)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -154,7 +150,6 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    # Подписаться на автора
     author = get_object_or_404(User, username=username)
     if request.user != author:
         obj = Follow.objects.filter(user=request.user, author=author).exists()
@@ -165,7 +160,6 @@ def profile_follow(request, username):
 
 @login_required
 def profile_unfollow(request, username):
-    # Дизлайк, отписка
     author = get_object_or_404(User, username=username)
     follow = Follow.objects.filter(user=request.user, author=author)
     follow.delete()
